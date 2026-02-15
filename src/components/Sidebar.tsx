@@ -1,36 +1,92 @@
-import { LayoutDashboard, Users, Mail, Settings, Bell, Search, LogOut } from 'lucide-react';
+'use client';
+
+import { usePathname } from 'next/navigation';
 import Link from 'next/link';
+import {
+    LayoutDashboard,
+    Users,
+    Mail,
+    Send,
+    BarChart2,
+    Settings,
+    LogOut,
+    ChevronLeft,
+    X
+} from 'lucide-react';
+import { useMapping } from '@/context/MappingContext';
 
 export default function Sidebar() {
-  return (
-    <aside className="fixed left-0 top-0 h-full w-20 bg-gray-50 border-r border-gray-200 flex flex-col items-center py-6 space-y-8 z-50">
-      {/* Brand Icon or Logo placeholder */}
-      <div className="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center shadow-lg mb-4">
-        <LayoutDashboard className="w-6 h-6 text-white" />
-      </div>
+    const pathname = usePathname();
+    const { isSidebarOpen, setIsSidebarOpen, toggleSidebar } = useMapping();
 
-      {/* Navigation Icons */}
-      <nav className="flex flex-col gap-6">
-        <Link href="#" className="p-3 bg-white text-indigo-600 rounded-xl shadow-sm border border-gray-100">
-          <LayoutDashboard className="w-6 h-6" />
-        </Link>
-        <Link href="#" className="p-3 text-gray-400 hover:text-indigo-600 hover:bg-white rounded-xl transition-all">
-          <Users className="w-6 h-6" />
-        </Link>
-        <Link href="#" className="p-3 text-gray-400 hover:text-indigo-600 hover:bg-white rounded-xl transition-all">
-          <Mail className="w-6 h-6" />
-        </Link>
-        <Link href="#" className="p-3 text-gray-400 hover:text-indigo-600 hover:bg-white rounded-xl transition-all">
-          <Settings className="w-6 h-6" />
-        </Link>
-      </nav>
+    const navItems = [
+        { name: 'Dashboard', href: '/', icon: LayoutDashboard },
+        { name: 'Email Lists', href: '/email-lists', icon: Users },
+        { name: 'Email Accounts', href: '/email-accounts', icon: Mail },
+        { name: 'Email Campaigns', href: '/email-campaigns', icon: Send },
+        { name: 'Analytics', href: '/analytics', icon: BarChart2 },
+        { name: 'Settings', href: '/settings', icon: Settings },
+    ];
 
-      {/* spacer to push logout to bottom */}
-      <div className="flex-grow"></div>
+    return (
+        <>
+            {/* Mobile Overlay */}
+            <div
+                className={`fixed inset-0 bg-black/50 transition-opacity duration-300 z-40 lg:hidden ${isSidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+                    }`}
+                onClick={toggleSidebar}
+            />
 
-       <button className="p-3 text-gray-400 hover:text-red-500 transition-colors mt-auto mb-4">
-          <LogOut className="w-6 h-6" />
-        </button>
-    </aside>
-  );
+            <aside
+                className={`fixed left-0 top-0 h-full bg-white dark:bg-gray-800 border-r border-gray-100 dark:border-gray-700 flex flex-col transition-all duration-300 ease-in-out z-50 w-[260px] ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+                    }`}
+            >
+                {/* Header/Logo Section */}
+                <div
+                    className="h-20 flex items-center px-6 justify-between border-b border-gray-50 dark:border-gray-700 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                    onClick={() => setIsSidebarOpen(false)}
+                >
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-indigo-600 dark:bg-indigo-500 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-200 dark:shadow-indigo-900 shrink-0">
+                            <LayoutDashboard className="w-6 h-6 text-white" />
+                        </div>
+                        <span className="font-bold text-xl text-gray-800 dark:text-gray-100 tracking-tight">Persona</span>
+                    </div>
+                </div>
+
+                {/* Navigation Items */}
+                <nav className="flex-1 py-6 px-4 space-y-2 overflow-y-auto overflow-x-hidden">
+                    {navItems.map((item) => {
+                        const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
+                        const Icon = item.icon;
+
+                        return (
+                            <Link
+                                key={item.href}
+                                href={item.href}
+                                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${isActive
+                                    ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 font-semibold'
+                                    : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-200'
+                                    }`}
+                            >
+                                <Icon className={`w-5 h-5 shrink-0 ${isActive ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-400 dark:text-gray-500 group-hover:text-gray-900 dark:group-hover:text-gray-200'}`} />
+                                <span className="truncate">{item.name}</span>
+                            </Link>
+                        );
+                    })}
+                </nav>
+
+                {/* Footer Section / Logout */}
+                <div className="p-4 border-t border-gray-50 dark:border-gray-700">
+                    <button
+                        suppressHydrationWarning
+                        className={`flex items-center gap-3 w-full px-4 py-3 rounded-xl text-gray-500 dark:text-gray-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-400 transition-all duration-200 group`}
+                    >
+                        <LogOut className="w-5 h-5 shrink-0 group-hover:text-red-600 dark:group-hover:text-red-400" />
+                        <span className="font-medium">Logout</span>
+                    </button>
+                </div>
+            </aside>
+        </>
+    );
 }
