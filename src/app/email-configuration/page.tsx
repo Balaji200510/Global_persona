@@ -9,7 +9,7 @@ import { useNotification } from '@/context/NotificationContext';
 
 export default function EmailConfiguration() {
     const { emailAccounts, addEmailAccount, deleteEmailAccount, updateEmailAccount } = useEmailAccount();
-    const { showNotification, showPrompt } = useNotification();
+    const { showNotification, showPrompt, showConfirm } = useNotification();
     const [mounted, setMounted] = useState(false);
     const [showAddModal, setShowAddModal] = useState(false);
     const [newAccountEmail, setNewAccountEmail] = useState('');
@@ -102,9 +102,9 @@ export default function EmailConfiguration() {
                     <button onClick={() => window.location.reload()} className="flex items-center justify-center p-2.5 text-gray-500 bg-white border border-gray-200 rounded-lg hover:border-indigo-300 hover:text-indigo-600 transition-all shadow-sm">
                         <RefreshCw className="w-4 h-4" />
                     </button>
-                    <button 
+                    <button
                         data-add-account
-                        onClick={handleAddAccount} 
+                        onClick={handleAddAccount}
                         className="flex items-center px-4 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors shadow-sm gap-2"
                     >
                         <Plus className="w-4 h-4" />

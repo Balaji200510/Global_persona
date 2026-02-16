@@ -5,7 +5,7 @@ import { LucideIcon } from 'lucide-react';
 interface EmailStatsCardProps {
     title: string;
     value: string | number;
-    subtext: string;
+    subtext?: string;
     icon: LucideIcon;
     iconColor: string;
     iconBgColor: string;
@@ -27,7 +27,7 @@ export default function EmailStatsCard({
             <div className="flex-1 min-w-0">
                 <p className="text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">{title}</p>
                 <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100 mt-1.5 sm:mt-2">{value}</h3>
-                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1.5">{subtext}</p>
+                {subtext && <p className="text-xs text-gray-400 dark:text-gray-500 mt-1.5">{subtext}</p>}
             </div>
         </div>
     );
