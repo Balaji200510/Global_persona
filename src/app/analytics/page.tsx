@@ -134,6 +134,54 @@ export default function AnalyticsPage() {
         },
     ];
 
+    const handleDownloadReport = () => {
+        // Headers
+        const headers = ['Campaign Name', 'Sent', 'Opens', 'Clicks', 'Bounces', 'Revenue', 'Status', 'Date', 'Type'];
+
+        // Data Rows
+        const rows = savedCampaigns.map(c => [
+            c.name.replace(/,/g, ' '), // Handle commas in names
+            c.sent,
+            c.opens,
+            c.clicks,
+            c.bounces,
+            c.revenue,
+            c.status,
+            new Date(c.createdAt).toLocaleDateString(),
+            (c as any).type || 'Standard'
+        ]);
+
+        // Add Summary Section
+        const summary = [
+            [],
+            ['SUMMARY METRICS'],
+            ['Total Campaigns', savedCampaigns.length],
+            ['Total Subscribers', subscribers],
+            ['Total Revenue', metrics.totalRevenue],
+            ['Avg Open Rate', `${metrics.avgOpenRate.toFixed(2)}%`],
+            ['Avg Click Rate', `${metrics.avgClickRate.toFixed(2)}%`],
+            []
+        ];
+
+        // Combine all
+        const csvContent = [
+            ...summary.map(r => r.join(',')),
+            headers.join(','),
+            ...rows.map(r => r.join(','))
+        ].join('\n');
+
+        // Create Blob and Download
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.setAttribute('href', url);
+        link.setAttribute('download', `analytics_report_${new Date().toISOString().split('T')[0]}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
     return (
         <div className="max-w-7xl mx-auto space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-20 px-4 md:px-0">
 
@@ -156,9 +204,7 @@ export default function AnalyticsPage() {
                             {filter}
                         </button>
                     ))}
-                    <button className="p-2 text-gray-400 hover:text-indigo-600 transition-colors">
-                        <Calendar className="w-5 h-5" />
-                    </button>
+
                 </div>
             </div>
 
@@ -332,7 +378,10 @@ export default function AnalyticsPage() {
                         Your personalized campaigns are currently being analyzed for engagement patterns. Check back soon for deeper behavioral insights.
                     </p>
                 </div>
-                <button className="px-8 py-4 bg-white text-indigo-600 rounded-2xl text-base font-black hover:bg-gray-50 transition-all shadow-2xl relative z-10 whitespace-nowrap">
+                <button
+                    onClick={handleDownloadReport}
+                    className="px-8 py-4 bg-white text-indigo-600 rounded-2xl text-base font-black hover:bg-gray-50 transition-all shadow-2xl relative z-10 whitespace-nowrap active:scale-95"
+                >
                     Download Full Report
                 </button>
             </div>

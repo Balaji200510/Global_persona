@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import { Search, SlidersHorizontal, Grid, List as ListIcon, RefreshCw, Upload } from 'lucide-react';
+import { Search, SlidersHorizontal, Grid, List as ListIcon, RefreshCw, Upload, ChevronDown } from 'lucide-react';
 import StatPill from '@/components/StatPill';
 import EmailListCard from '@/components/EmailListCard';
 import { useMapping, EmailList } from '@/context/MappingContext';
@@ -15,6 +15,7 @@ export default function EmailListsPage() {
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState('All Status');
+    const [isStatusOpen, setIsStatusOpen] = useState(false);
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
@@ -52,7 +53,7 @@ export default function EmailListsPage() {
         return emailLists.filter((list: EmailList) => {
             const matchesSearch = list.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 list.fileName.toLowerCase().includes(searchQuery.toLowerCase());
-            const matchesStatus = statusFilter === 'All Status' || list.status === statusFilter;
+            const matchesStatus = statusFilter === 'All Status' || list.status?.toLowerCase() === statusFilter.toLowerCase();
             return matchesSearch && matchesStatus;
         });
     }, [emailLists, searchQuery, statusFilter]);
@@ -134,18 +135,38 @@ export default function EmailListsPage() {
                     />
                 </div>
 
-                <div className="flex items-center gap-2 w-full md:w-auto">
-                    <select
-                        value={statusFilter}
-                        onChange={(e) => setStatusFilter(e.target.value)}
-                        className="flex-1 md:flex-none appearance-none bg-gray-50 border-none rounded-lg text-sm px-4 py-2 pr-10 focus:ring-2 focus:ring-indigo-100 outline-none transition-all cursor-pointer font-bold text-gray-700"
-                    >
-                        <option>All Status</option>
-                        <option>Validated</option>
-                        <option>Draft</option>
-                    </select>
+                <div className="flex items-center gap-2 w-full md:w-auto z-20">
+                    <div className="relative">
+                        <button
+                            onClick={() => setIsStatusOpen(!isStatusOpen)}
+                            className="flex items-center gap-2 px-4 py-2 bg-gray-50 border border-gray-100 rounded-lg text-sm font-bold text-gray-700 hover:bg-gray-100 transition-all min-w-[140px] justify-between"
+                        >
+                            <span>{statusFilter}</span>
+                            <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${isStatusOpen ? 'rotate-180' : ''}`} />
+                        </button>
 
-                    <button className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:border-indigo-300 hover:text-indigo-600 transition-all">
+                        {isStatusOpen && (
+                            <div className="absolute top-full right-0 mt-2 w-48 bg-white border border-gray-100 rounded-xl shadow-xl z-50 p-1 animate-in fade-in zoom-in-95 duration-200">
+                                {['All Status', 'Validated', 'Draft', 'Processing', 'Error'].map(status => (
+                                    <button
+                                        key={status}
+                                        onClick={() => {
+                                            setStatusFilter(status);
+                                            setIsStatusOpen(false);
+                                        }}
+                                        className={`w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${statusFilter === status ? 'bg-indigo-50 text-indigo-600' : 'text-gray-600 hover:bg-gray-50'}`}
+                                    >
+                                        {status}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    <button
+                        onClick={() => setIsStatusOpen(!isStatusOpen)}
+                        className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:border-indigo-300 hover:text-indigo-600 transition-all"
+                    >
                         <SlidersHorizontal className="w-4 h-4" />
                         Filters
                     </button>

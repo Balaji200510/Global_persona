@@ -5,10 +5,27 @@ import { useRouter } from 'next/navigation';
 import { useCampaign } from '@/context/CampaignContext';
 import { useState, useEffect } from 'react';
 
-export default function CampaignsDashboardHeader() {
+interface CampaignsDashboardHeaderProps {
+    viewMode?: 'grid' | 'list';
+    setViewMode?: (mode: 'grid' | 'list') => void;
+    searchQuery?: string;
+    setSearchQuery?: (query: string) => void;
+    statusFilter?: string;
+    setStatusFilter?: (status: string) => void;
+}
+
+export default function CampaignsDashboardHeader({
+    viewMode = 'grid',
+    setViewMode,
+    searchQuery = '',
+    setSearchQuery,
+    statusFilter = 'All',
+    setStatusFilter
+}: CampaignsDashboardHeaderProps) {
     const router = useRouter();
     const { resetCampaign } = useCampaign();
     const [mounted, setMounted] = useState(false);
+    const [isFilterOpen, setIsFilterOpen] = useState(false);
 
     useEffect(() => {
         setMounted(true);
@@ -54,31 +71,55 @@ export default function CampaignsDashboardHeader() {
                             type="text"
                             suppressHydrationWarning
                             placeholder="Search campaigns..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery?.(e.target.value)}
                             className="w-full pl-11 pr-4 py-3 bg-white border border-gray-100 rounded-xl text-sm outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-50 transition-all placeholder-gray-400 shadow-sm"
                         />
                     </div>
-                    <button
-                        type="button"
-                        suppressHydrationWarning
-                        className="flex items-center gap-2 px-4 py-3 bg-white border border-gray-100 rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-all shadow-sm"
-                    >
-                        <Filter className="w-4 h-4" />
-                        Filters
-                    </button>
+                    <div className="relative">
+                        <button
+                            type="button"
+                            suppressHydrationWarning
+                            onClick={() => setIsFilterOpen(!isFilterOpen)}
+                            className={`flex items-center gap-2 px-4 py-3 border rounded-xl text-sm font-semibold transition-all shadow-sm ${statusFilter !== 'All' ? 'bg-blue-50 border-blue-200 text-blue-600' : 'bg-white border-gray-100 text-gray-600 hover:bg-gray-50'}`}
+                        >
+                            <Filter className="w-4 h-4" />
+                            {statusFilter === 'All' ? 'Filters' : statusFilter}
+                        </button>
+
+                        {isFilterOpen && (
+                            <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 py-1 z-50 animate-in fade-in zoom-in-95 duration-200">
+                                {['All', 'Draft', 'Completed', 'Rejected'].map((status) => (
+                                    <button
+                                        key={status}
+                                        onClick={() => {
+                                            setStatusFilter?.(status);
+                                            setIsFilterOpen(false);
+                                        }}
+                                        className={`w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors ${statusFilter === status ? 'text-blue-600 font-bold bg-blue-50' : 'text-gray-600'}`}
+                                    >
+                                        {status}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </div>
                 </div>
 
                 <div className="flex items-center gap-2 p-1 bg-gray-100 rounded-xl self-end lg:self-auto">
                     <button
                         type="button"
                         suppressHydrationWarning
-                        className="p-2 bg-white text-blue-600 rounded-lg shadow-sm transition-all"
+                        onClick={() => setViewMode?.('grid')}
+                        className={`p-2 rounded-lg shadow-sm transition-all ${viewMode === 'grid' ? 'bg-white text-blue-600' : 'text-gray-400 hover:text-gray-600'}`}
                     >
                         <LayoutGrid className="w-5 h-5" />
                     </button>
                     <button
                         type="button"
                         suppressHydrationWarning
-                        className="p-2 text-gray-400 hover:text-gray-600 transition-all"
+                        onClick={() => setViewMode?.('list')}
+                        className={`p-2 rounded-lg shadow-sm transition-all ${viewMode === 'list' ? 'bg-white text-blue-600' : 'text-gray-400 hover:text-gray-600'}`}
                     >
                         <List className="w-5 h-5" />
                     </button>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import KPICard from '@/components/KPICard';
 import { ChevronDown } from 'lucide-react';
 import { useCampaign } from '@/context/CampaignContext';
@@ -9,6 +9,20 @@ export default function Home() {
   const { savedCampaigns, metrics, subscribers } = useCampaign();
   const [mounted, setMounted] = useState(false);
   const [timeFilter, setTimeFilter] = useState('Last 30 days');
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   useEffect(() => {
     setMounted(true);
@@ -92,21 +106,25 @@ export default function Home() {
           <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-gray-100">Performance Overview</h2>
           <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1.5">Track your email marketing metrics in real-time</p>
         </div>
-        <div className="relative group w-full sm:w-auto">
+        <div className="relative w-full sm:w-auto" ref={dropdownRef}>
           <button
             suppressHydrationWarning
+            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
             className="flex items-center justify-between w-full sm:w-auto px-4 py-2.5 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm border border-gray-200 dark:border-gray-700 rounded-lg sm:rounded-xl text-sm text-gray-600 dark:text-gray-300 hover:border-indigo-300 dark:hover:border-indigo-500 hover:shadow-md transition-all duration-300 shadow-sm hover:scale-105 active:scale-95"
           >
             <span>{timeFilter}</span>
-            <ChevronDown className="w-4 h-4 ml-2 text-gray-400 group-hover:rotate-180 transition-transform duration-300" />
+            <ChevronDown className={`w-4 h-4 ml-2 text-gray-400 transition-transform duration-300 ${isDropdownOpen ? 'rotate-180' : ''}`} />
           </button>
-          <div className="absolute right-0 mt-2 w-full sm:w-48 bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50">
+          <div className={`absolute right-0 mt-2 w-full sm:w-48 bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl transition-all duration-300 z-50 ${isDropdownOpen ? 'opacity-100 visible translate-y-0' : 'opacity-0 invisible -translate-y-2'}`}>
             <div className="p-2 space-y-1">
               {['Last 7 days', 'Last 30 days', 'All time'].map(filter => (
                 <button
                   key={filter}
                   suppressHydrationWarning
-                  onClick={() => setTimeFilter(filter)}
+                  onClick={() => {
+                    setTimeFilter(filter);
+                    setIsDropdownOpen(false);
+                  }}
                   className={`w-full text-left px-4 py-2.5 text-sm rounded-lg transition-all duration-200 ${timeFilter === filter ? 'bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/30 dark:to-purple-900/30 text-indigo-600 dark:text-indigo-400 font-bold' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
                 >
                   {filter}

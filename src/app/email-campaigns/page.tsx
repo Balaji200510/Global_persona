@@ -13,6 +13,9 @@ import { CampaignCardSkeleton } from '@/components/Skeleton';
 export default function EmailCampaignsPage() {
     const { savedCampaigns, metrics, updateCampaignStatus } = useCampaign();
     const [mounted, setMounted] = useState(false);
+    const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+    const [searchQuery, setSearchQuery] = useState('');
+    const [statusFilter, setStatusFilter] = useState('All');
 
     useEffect(() => {
         setMounted(true);
@@ -27,14 +30,27 @@ export default function EmailCampaignsPage() {
         { title: "Bounce Rate", value: mounted ? `${metrics.bounceRate.toFixed(1)}%` : "0%", icon: BarChart3, iconBgColor: "bg-pink-50", iconColor: "text-pink-600" },
     ];
 
-    // Sort a copy to avoid mutation
-    const sortedCampaigns = [...savedCampaigns].sort((a, b) =>
+    // Filter and Sort
+    const filteredCampaigns = savedCampaigns.filter(c => {
+        const matchesSearch = c.name.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesStatus = statusFilter === 'All' || c.status === statusFilter;
+        return matchesSearch && matchesStatus;
+    });
+
+    const sortedCampaigns = [...filteredCampaigns].sort((a, b) =>
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     );
 
     return (
         <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8 md:space-y-10 animate-fade-in">
-            <CampaignsDashboardHeader />
+            <CampaignsDashboardHeader
+                viewMode={viewMode}
+                setViewMode={setViewMode}
+                searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
+                statusFilter={statusFilter}
+                setStatusFilter={setStatusFilter}
+            />
 
             {/* Stats Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-6 gap-3 sm:gap-4">
@@ -54,10 +70,14 @@ export default function EmailCampaignsPage() {
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0 mb-4 sm:mb-6">
                     <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-gray-100">Recent Campaigns</h2>
                     <span className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">
-                        Showing {mounted ? savedCampaigns.length : 0} campaigns
+                        Showing {mounted ? sortedCampaigns.length : 0} campaigns
                     </span>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                <div className={viewMode === 'grid'
+
+                    ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6"
+                    : "flex flex-col gap-4"
+                }>
                     {!mounted ? (
                         Array(6).fill(0).map((_, i) => (
                             <div key={i} className="animate-fade-in" style={{ animationDelay: `${i * 100}ms` }}>
