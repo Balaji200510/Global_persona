@@ -5,10 +5,15 @@ import { Plus, RefreshCw, Mail, ShieldCheck, MailCheck, Search } from 'lucide-re
 import StatsCard from '@/components/StatsCard';
 import AccountRow from '@/components/AccountRow';
 import { useEmailAccount } from '@/context/EmailAccountContext';
+import { useNotification } from '@/context/NotificationContext';
 
 export default function EmailConfiguration() {
     const { emailAccounts, addEmailAccount, deleteEmailAccount, updateEmailAccount } = useEmailAccount();
+    const { showNotification, showPrompt } = useNotification();
     const [mounted, setMounted] = useState(false);
+    const [showAddModal, setShowAddModal] = useState(false);
+    const [newAccountEmail, setNewAccountEmail] = useState('');
+    const [newAccountProvider, setNewAccountProvider] = useState('');
 
     useEffect(() => {
         setMounted(true);
@@ -51,19 +56,33 @@ export default function EmailConfiguration() {
     }, [emailAccounts]);
 
     const handleAddAccount = () => {
-        // Since there's no form provided in the request, we'll implement a basic "test" account adder
-        // as per rule 6: "Push new account object into state"
-        const email = `account-${emailAccounts.length + 1}@globopersona.com`;
+        setShowAddModal(true);
+    };
+
+    const handleSubmitAccount = () => {
+        if (!newAccountEmail || !newAccountEmail.includes('@')) {
+            showNotification('Please enter a valid email address', 'error');
+            return;
+        }
+
+        const provider = newAccountProvider || 'Custom SMTP';
+        const protocol = provider.toLowerCase().includes('gmail') ? 'OAuth' : 'SMTP';
+
         addEmailAccount({
-            email,
+            email: newAccountEmail,
             status: 'active',
-            isVerified: true,
-            provider: 'Global Persona',
-            protocol: 'SMTP',
+            isVerified: false,
+            provider,
+            protocol,
             sentToday: 0,
             dailyLimit: 100,
             lastUsed: new Date().toISOString()
         });
+
+        showNotification(`Email account ${newAccountEmail} added successfully`, 'success');
+        setShowAddModal(false);
+        setNewAccountEmail('');
+        setNewAccountProvider('');
     };
 
     if (!mounted) return null;
@@ -83,7 +102,11 @@ export default function EmailConfiguration() {
                     <button onClick={() => window.location.reload()} className="flex items-center justify-center p-2.5 text-gray-500 bg-white border border-gray-200 rounded-lg hover:border-indigo-300 hover:text-indigo-600 transition-all shadow-sm">
                         <RefreshCw className="w-4 h-4" />
                     </button>
-                    <button onClick={handleAddAccount} className="flex items-center px-4 py-2.5 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors shadow-sm gap-2">
+                    <button 
+                        data-add-account
+                        onClick={handleAddAccount} 
+                        className="flex items-center px-4 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors shadow-sm gap-2"
+                    >
                         <Plus className="w-4 h-4" />
                         Add Email Account
                     </button>
@@ -134,8 +157,20 @@ export default function EmailConfiguration() {
                                 dailyLimit={account.dailyLimit}
                                 lastUsed={account.lastUsed}
                                 className={idx === 0 ? 'bg-orange-50/30' : ''}
-                                onDelete={deleteEmailAccount}
-                                onEdit={(id) => console.log('Edit account', id)}
+                                onDelete={(id) => {
+                                    const account = emailAccounts.find(acc => acc.id === id);
+                                    showConfirm(
+                                        `Are you sure you want to delete ${account?.email || 'this account'}? This action cannot be undone.`,
+                                        () => {
+                                            deleteEmailAccount(id);
+                                            showNotification(`Email account ${account?.email || ''} has been deleted`, 'success');
+                                        }
+                                    );
+                                }}
+                                onEdit={(id) => {
+                                    const account = emailAccounts.find(acc => acc.id === id);
+                                    showNotification(`Edit functionality for ${account?.email || 'this account'} - Coming soon`, 'info');
+                                }}
                             />
                         ))
                     ) : (
@@ -156,6 +191,68 @@ export default function EmailConfiguration() {
                     )}
                 </div>
             </div>
+
+            {/* Add Account Modal */}
+            {showAddModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fade-in">
+                    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 max-w-md w-full mx-4 animate-scale-in">
+                        <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-4">Add Email Account</h3>
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    Email Address
+                                </label>
+                                <input
+                                    type="email"
+                                    value={newAccountEmail}
+                                    onChange={(e) => setNewAccountEmail(e.target.value)}
+                                    placeholder="example@domain.com"
+                                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                                    autoFocus
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    Provider (Optional)
+                                </label>
+                                <input
+                                    type="text"
+                                    value={newAccountProvider}
+                                    onChange={(e) => setNewAccountProvider(e.target.value)}
+                                    placeholder="e.g., Gmail, Outlook, Custom SMTP"
+                                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                            handleSubmitAccount();
+                                        } else if (e.key === 'Escape') {
+                                            setShowAddModal(false);
+                                        }
+                                    }}
+                                />
+                            </div>
+                        </div>
+                        <div className="flex gap-3 justify-end mt-6">
+                            <button
+                                onClick={() => {
+                                    setShowAddModal(false);
+                                    setNewAccountEmail('');
+                                    setNewAccountProvider('');
+                                }}
+                                className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleSubmitAccount}
+                                disabled={!newAccountEmail.trim()}
+                                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                Add Account
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

@@ -47,16 +47,28 @@ export function MappingProvider({ children }: { children: ReactNode }) {
     const [listName, setListName] = useState('');
     const [mappings, setMappings] = useState<Record<string, string>>({});
     const [emailLists, setEmailLists] = useState<EmailList[]>([]);
+    // Start with false to match server-side rendering, then update after hydration
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isHydrated, setIsHydrated] = useState(false);
 
-    // Initial load from localStorage
+    // Initial load from localStorage and set sidebar state based on screen size
     React.useEffect(() => {
         const stored = localStorage.getItem('persona_email_lists');
         if (stored) {
-            setEmailLists(JSON.parse(stored));
+            try {
+                setEmailLists(JSON.parse(stored));
+            } catch (error) {
+                console.error('Error parsing email lists:', error);
+            }
         }
+        
         setIsHydrated(true);
+        
+        // Set sidebar open by default on desktop (>= 1024px), closed on mobile
+        // Only after hydration to avoid mismatch
+        if (typeof window !== 'undefined') {
+            setIsSidebarOpen(window.innerWidth >= 1024);
+        }
     }, []);
 
     // Persist to localStorage

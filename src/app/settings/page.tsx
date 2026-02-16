@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import React from 'react';
 import {
     User,
     Bell,
@@ -11,9 +12,30 @@ import {
     Save,
     Trash2
 } from 'lucide-react';
+import { useNotification } from '@/context/NotificationContext';
 
 export default function SettingsPage() {
     const [activeTab, setActiveTab] = useState('profile');
+    const { showNotification, showConfirm } = useNotification();
+    const [mounted, setMounted] = useState(false);
+    const [profileData, setProfileData] = useState({
+        fullName: '',
+        email: '',
+        bio: ''
+    });
+
+    // Load saved profile data from localStorage
+    useEffect(() => {
+        const saved = localStorage.getItem('persona_profile_settings');
+        if (saved) {
+            try {
+                setProfileData(JSON.parse(saved));
+            } catch (error) {
+                console.error('Error loading profile settings:', error);
+            }
+        }
+        setMounted(true);
+    }, []);
 
     const tabs = [
         { id: 'profile', name: 'Profile', icon: User },
@@ -79,23 +101,29 @@ export default function SettingsPage() {
                                             <label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Full Name</label>
                                             <input
                                                 type="text"
-                                                defaultValue="Demo Admin"
-                                                className="w-full px-5 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm font-bold text-gray-700 focus:bg-white focus:ring-2 focus:ring-indigo-100 focus:border-indigo-300 outline-none transition-all"
+                                                value={profileData.fullName}
+                                                onChange={(e) => setProfileData(prev => ({ ...prev, fullName: e.target.value }))}
+                                                placeholder="Enter your full name"
+                                                className="w-full px-5 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl text-sm font-bold text-gray-700 dark:text-gray-300 focus:bg-white dark:focus:bg-gray-700 focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900 focus:border-blue-300 dark:focus:border-blue-600 outline-none transition-all"
                                             />
                                         </div>
                                         <div className="space-y-2">
-                                            <label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Email Address</label>
+                                            <label className="text-xs font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest ml-1">Email Address</label>
                                             <input
                                                 type="email"
-                                                defaultValue="admin@demo.com"
-                                                className="w-full px-5 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm font-bold text-gray-700 focus:bg-white focus:ring-2 focus:ring-indigo-100 focus:border-indigo-300 outline-none transition-all"
+                                                value={profileData.email}
+                                                onChange={(e) => setProfileData(prev => ({ ...prev, email: e.target.value }))}
+                                                placeholder="Enter your email address"
+                                                className="w-full px-5 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl text-sm font-bold text-gray-700 dark:text-gray-300 focus:bg-white dark:focus:bg-gray-700 focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900 focus:border-blue-300 dark:focus:border-blue-600 outline-none transition-all"
                                             />
                                         </div>
                                         <div className="space-y-2 lg:col-span-2">
-                                            <label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Bio</label>
+                                            <label className="text-xs font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest ml-1">Bio</label>
                                             <textarea
-                                                defaultValue="Managing global email outreach and persona assessments."
-                                                className="w-full px-5 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm font-bold text-gray-700 focus:bg-white focus:ring-2 focus:ring-indigo-100 focus:border-indigo-300 outline-none transition-all h-32 resize-none"
+                                                value={profileData.bio}
+                                                onChange={(e) => setProfileData(prev => ({ ...prev, bio: e.target.value }))}
+                                                placeholder="Tell us about yourself..."
+                                                className="w-full px-5 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl text-sm font-bold text-gray-700 dark:text-gray-300 focus:bg-white dark:focus:bg-gray-700 focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900 focus:border-blue-300 dark:focus:border-blue-600 outline-none transition-all h-32 resize-none"
                                             />
                                         </div>
                                     </div>
@@ -107,17 +135,34 @@ export default function SettingsPage() {
                                     <div className="w-20 h-20 bg-gray-50 rounded-3xl flex items-center justify-center text-gray-300">
                                         <Save className="w-10 h-10" />
                                     </div>
-                                    <h3 className="text-lg font-bold text-gray-900 border-none uppercase tracking-tighter">{activeTab} Configuration</h3>
-                                    <p className="text-gray-400 text-sm max-w-xs mx-auto">This section is currently under development. Mock settings will appear here soon.</p>
+                                    <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 border-none uppercase tracking-tighter">{activeTab} Configuration</h3>
+                                    <p className="text-gray-400 dark:text-gray-500 text-sm max-w-xs mx-auto">This section is currently under development. Settings will be available soon.</p>
                                 </div>
                             )}
                         </div>
 
-                        <div className="p-10 bg-gray-50/50 border-t border-gray-100 flex items-center justify-between">
-                            <button className="flex items-center gap-2 px-6 py-3 bg-white border border-red-100 text-red-600 rounded-xl text-xs font-bold hover:bg-red-50 transition-all shadow-sm">
+                        <div className="p-10 bg-gray-50/50 dark:bg-gray-800/50 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between">
+                            <button 
+                                onClick={() => {
+                                    showConfirm(
+                                        'Are you sure you want to deactivate your account? This action cannot be undone.',
+                                        () => {
+                                            showNotification('Account deactivation feature coming soon', 'info');
+                                        }
+                                    );
+                                }}
+                                className="flex items-center gap-2 px-6 py-3 bg-white dark:bg-gray-800 border border-red-100 dark:border-red-900/30 text-red-600 dark:text-red-400 rounded-xl text-xs font-bold hover:bg-red-50 dark:hover:bg-red-900/20 transition-all shadow-sm"
+                            >
                                 <Trash2 className="w-4 h-4" /> Deactivate Account
                             </button>
-                            <button className="flex items-center gap-2 px-8 py-3 bg-indigo-600 text-white rounded-xl text-xs font-bold hover:bg-indigo-700 hover:-translate-y-0.5 transition-all shadow-lg shadow-indigo-100">
+                            <button 
+                                onClick={() => {
+                                    // Save to localStorage for persistence
+                                    localStorage.setItem('persona_profile_settings', JSON.stringify(profileData));
+                                    showNotification('Settings saved successfully', 'success');
+                                }}
+                                className="flex items-center gap-2 px-8 py-3 bg-blue-600 text-white rounded-xl text-xs font-bold hover:bg-blue-700 hover:-translate-y-0.5 transition-all shadow-lg shadow-blue-100"
+                            >
                                 Save Changes
                             </button>
                         </div>

@@ -15,7 +15,7 @@ export default function ListCard({ title, description, validContacts, openRate, 
     return (
         <div className="bg-white rounded-xl shadow-sm border border-gray-100/60 overflow-hidden hover:shadow-md transition-all group relative">
             {/* Gradient Top Border */}
-            <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"></div>
+            <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-slate-600 via-blue-600 to-slate-700"></div>
 
             <div className="p-6 pt-8">
                 {/* Header Badges */}
@@ -29,7 +29,7 @@ export default function ListCard({ title, description, validContacts, openRate, 
                 </div>
 
                 {/* Title & Description */}
-                <h3 className="text-lg font-bold text-gray-800 mb-1 group-hover:text-indigo-600 transition-colors">{title}</h3>
+                <h3 className="text-lg font-bold text-gray-800 mb-1 group-hover:text-blue-600 transition-colors">{title}</h3>
                 <p className="text-xs text-gray-400 mb-6 line-clamp-2 min-h-[2.5em]">{description}</p>
 
                 {/* Metrics Grid */}

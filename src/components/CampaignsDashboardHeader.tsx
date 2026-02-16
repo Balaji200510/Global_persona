@@ -38,7 +38,7 @@ export default function CampaignsDashboardHeader() {
                     type="button"
                     suppressHydrationWarning
                     onClick={handleNewCampaign}
-                    className="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-xl text-sm font-bold hover:shadow-lg hover:shadow-indigo-100 transition-all hover:-translate-y-0.5"
+                    className="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-blue-600 to-slate-700 text-white rounded-xl text-sm font-bold hover:shadow-lg hover:shadow-blue-100 transition-all hover:-translate-y-0.5"
                 >
                     <Plus className="w-5 h-5" />
                     New Campaign
@@ -54,7 +54,7 @@ export default function CampaignsDashboardHeader() {
                             type="text"
                             suppressHydrationWarning
                             placeholder="Search campaigns..."
-                            className="w-full pl-11 pr-4 py-3 bg-white border border-gray-100 rounded-xl text-sm outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-50 transition-all placeholder-gray-400 shadow-sm"
+                            className="w-full pl-11 pr-4 py-3 bg-white border border-gray-100 rounded-xl text-sm outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-50 transition-all placeholder-gray-400 shadow-sm"
                         />
                     </div>
                     <button
@@ -71,7 +71,7 @@ export default function CampaignsDashboardHeader() {
                     <button
                         type="button"
                         suppressHydrationWarning
-                        className="p-2 bg-white text-indigo-600 rounded-lg shadow-sm transition-all"
+                        className="p-2 bg-white text-blue-600 rounded-lg shadow-sm transition-all"
                     >
                         <LayoutGrid className="w-5 h-5" />
                     </button>

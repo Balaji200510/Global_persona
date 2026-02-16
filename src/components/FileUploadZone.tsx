@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Upload, FileText, X, AlertCircle } from 'lucide-react';
+import { useNotification } from '@/context/NotificationContext';
 
 interface FileUploadZoneProps {
     onFileSelect: (file: File) => void;
@@ -10,6 +11,7 @@ interface FileUploadZoneProps {
 
 export default function FileUploadZone({ onFileSelect, selectedFile }: FileUploadZoneProps) {
     const [isDragOver, setIsDragOver] = useState(false);
+    const { showNotification } = useNotification();
 
     const handleDragOver = (e: React.DragEvent) => {
         e.preventDefault();
@@ -28,8 +30,9 @@ export default function FileUploadZone({ onFileSelect, selectedFile }: FileUploa
             const file = e.dataTransfer.files[0];
             if (file.type === 'text/csv' || file.name.endsWith('.csv')) {
                 onFileSelect(file);
+                showNotification('CSV file uploaded successfully', 'success');
             } else {
-                alert("Please upload a CSV file.");
+                showNotification('Please upload a CSV file', 'error');
             }
         }
     };

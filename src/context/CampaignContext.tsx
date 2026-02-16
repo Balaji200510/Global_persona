@@ -88,28 +88,48 @@ const CampaignContext = createContext<CampaignContextType | undefined>(undefined
 export function CampaignProvider({ children }: { children: ReactNode }) {
     const [campaignData, setCampaignData] = useState<CampaignData>(defaultData);
     const [savedCampaigns, setSavedCampaigns] = useState<SavedCampaign[]>([]);
-    const [subscribers, setSubscribers] = useState(0);
     const [isHydrated, setIsHydrated] = useState(false);
 
     // Initial load from localStorage
     useEffect(() => {
         const stored = localStorage.getItem('persona_saved_campaigns');
         if (stored) {
-            const data = JSON.parse(stored);
-            // Ensure all loaded campaigns have an ID
-            const sanitized = data.map((c: any, idx: number) => ({
-                ...c,
-                id: c.id || `legacy-${idx}-${Date.now()}`
-            }));
-            setSavedCampaigns(sanitized);
+            try {
+                const data = JSON.parse(stored);
+                // Ensure all loaded campaigns have an ID and valid structure
+                const sanitized = data.map((c: any, idx: number) => ({
+                    ...c,
+                    id: c.id || `legacy-${idx}-${Date.now()}`,
+                    // Ensure all required fields exist
+                    name: c.name || 'Unnamed Campaign',
+                    status: c.status || 'Draft',
+                    isAIPersonalized: c.isAIPersonalized || false,
+                    recipients: c.recipients || 0,
+                    sent: c.sent || 0,
+                    opens: c.opens || 0,
+                    clicks: c.clicks || 0,
+                    bounces: c.bounces || 0,
+                    revenue: c.revenue || 0,
+                    createdAt: c.createdAt || new Date().toISOString()
+                }));
+                setSavedCampaigns(sanitized);
+            } catch (error) {
+                // If parsing fails, start with empty state
+                console.error('Error parsing saved campaigns:', error);
+                setSavedCampaigns([]);
+            }
         } else {
-            // No mock data - start with empty state
+            // No stored data - start with empty state
             setSavedCampaigns([]);
         }
 
         const storedDraft = localStorage.getItem('persona_campaign_draft');
         if (storedDraft) {
-            setCampaignData(JSON.parse(storedDraft));
+            try {
+                setCampaignData(JSON.parse(storedDraft));
+            } catch (error) {
+                console.error('Error parsing campaign draft:', error);
+            }
         }
 
         setIsHydrated(true);
@@ -125,11 +145,11 @@ export function CampaignProvider({ children }: { children: ReactNode }) {
 
     const metrics = useMemo(() => {
         const completed = savedCampaigns.filter(c => c.status === 'Completed');
-        const totalSent = completed.reduce((acc, c) => acc + c.sent, 0);
-        const totalOpens = completed.reduce((acc, c) => acc + c.opens, 0);
-        const totalClicks = completed.reduce((acc, c) => acc + c.clicks, 0);
-        const totalBounces = completed.reduce((acc, c) => acc + c.bounces, 0);
-        const totalRevenue = completed.reduce((acc, c) => acc + c.revenue, 0);
+        const totalSent = completed.reduce((acc, c) => acc + (c.sent || 0), 0);
+        const totalOpens = completed.reduce((acc, c) => acc + (c.opens || 0), 0);
+        const totalClicks = completed.reduce((acc, c) => acc + (c.clicks || 0), 0);
+        const totalBounces = completed.reduce((acc, c) => acc + (c.bounces || 0), 0);
+        const totalRevenue = completed.reduce((acc, c) => acc + (c.revenue || 0), 0);
 
         return {
             totalCampaigns: savedCampaigns.length,
@@ -144,11 +164,29 @@ export function CampaignProvider({ children }: { children: ReactNode }) {
         };
     }, [savedCampaigns]);
 
+    // Calculate subscribers dynamically from completed campaigns
+    const subscribers = useMemo(() => {
+        return savedCampaigns
+            .filter(c => c.status === 'Completed')
+            .reduce((acc, c) => acc + (c.recipients || 0), 0);
+    }, [savedCampaigns]);
+
     const addCampaign = (campaign: SavedCampaign) => {
-        setSavedCampaigns(prev => [campaign, ...prev]);
-        if (campaign.status === 'Completed') {
-            setSubscribers(prev => prev + Math.floor(campaign.recipients * 0.05)); // Simulate growth
-        }
+        // Ensure campaign has all required fields
+        const sanitizedCampaign: SavedCampaign = {
+            id: campaign.id || Math.random().toString(36).substr(2, 9),
+            name: campaign.name || 'Unnamed Campaign',
+            status: campaign.status || 'Draft',
+            isAIPersonalized: campaign.isAIPersonalized || false,
+            recipients: campaign.recipients || 0,
+            sent: campaign.sent || 0,
+            opens: campaign.opens || 0,
+            clicks: campaign.clicks || 0,
+            bounces: campaign.bounces || 0,
+            revenue: campaign.revenue || 0,
+            createdAt: campaign.createdAt || new Date().toISOString()
+        };
+        setSavedCampaigns(prev => [sanitizedCampaign, ...prev]);
     };
 
     const updateCampaignStatus = (id: string, status: 'Completed' | 'Rejected') => {

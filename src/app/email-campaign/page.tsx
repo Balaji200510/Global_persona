@@ -1,12 +1,16 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useMapping } from '@/context/MappingContext';
+import { useNotification } from '@/context/NotificationContext';
 import CampaignFormCard from '@/components/CampaignFormCard';
 import CampaignPreviewCard from '@/components/CampaignPreviewCard';
 
 export default function EmailCampaignPage() {
+    const router = useRouter();
     const { emailLists } = useMapping();
+    const { showNotification } = useNotification();
     const [campaignName, setCampaignName] = useState('');
     const [selectedAudienceId, setSelectedAudienceId] = useState('');
 
@@ -14,8 +18,16 @@ export default function EmailCampaignPage() {
     const selectedAudienceName = selectedAudience ? selectedAudience.name : '';
 
     const handleNext = () => {
-        // Placeholder for future steps
-        alert('Proceeding to Step 2: Choose Your Approach');
+        if (!campaignName.trim()) {
+            showNotification('Please enter a campaign name', 'warning');
+            return;
+        }
+        if (!selectedAudienceId) {
+            showNotification('Please select an audience', 'warning');
+            return;
+        }
+        // Navigate to approach selection
+        router.push('/email-campaigns/new/approach');
     };
 
     const handleClear = () => {

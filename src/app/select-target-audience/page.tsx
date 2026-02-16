@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCampaign } from '@/context/CampaignContext';
+import { useMapping } from '@/context/MappingContext';
 import {
     Users,
     Search,
@@ -15,20 +16,37 @@ import {
     Mail
 } from 'lucide-react';
 
-const MOCK_CONTACTS = [
-    { id: '1', name: 'Alex Johnson', title: 'Marketing Director', company: 'Global Tech', email: 'alex.j@globaltech.com' },
-    { id: '2', name: 'Sarah Miller', title: 'Sales Manager', company: 'Innoverse', email: 'sarah.m@innoverse.io' },
-    { id: '3', name: 'Michael Chen', title: 'CEO', company: 'Zynith Solutions', email: 'm.chen@zynith.com' },
-    { id: '4', name: 'Emma Wilson', title: 'HR Head', company: 'Pixel Flow', email: 'emma.w@pixelflow.co' },
-    { id: '5', name: 'David Smith', title: 'Product Owner', company: 'Cloud Scale', email: 'david.s@cloudscale.net' },
-    { id: '6', name: 'Lisa Brown', title: 'CTO', company: 'Data Pulse', email: 'lisa.b@datapulse.ai' },
-];
-
 export default function SelectTargetAudiencePage() {
     const router = useRouter();
     const { campaignData, setCampaignData } = useCampaign();
+    const { emailLists } = useMapping();
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
+
+    // Get contacts from the selected email list
+    const contacts = useMemo(() => {
+        if (!campaignData.audienceId) return [];
+        
+        const selectedList = emailLists.find(list => list.id === campaignData.audienceId);
+        if (!selectedList || !selectedList.data || selectedList.data.length === 0) return [];
+
+        // Transform list data into contact format
+        return selectedList.data.map((row: any, index: number) => {
+            // Try to find email, name, title, company fields from mappings or data
+            const email = row.email || row.Email || row['email address'] || row['Email Address'] || '';
+            const name = row.name || row.Name || row['full name'] || row['Full Name'] || row['contact name'] || 'Unknown';
+            const title = row.title || row.Title || row['job title'] || row['Job Title'] || row.position || '';
+            const company = row.company || row.Company || row['company name'] || row['Company Name'] || row.organization || '';
+
+            return {
+                id: `${selectedList.id}-${index}`,
+                name: name || 'Unknown Contact',
+                title: title || 'N/A',
+                company: company || 'N/A',
+                email: email || `contact${index + 1}@example.com`
+            };
+        }).filter((contact: any) => contact.email); // Only include contacts with email
+    }, [campaignData.audienceId, emailLists]);
 
     useEffect(() => {
         // Hydrate from context if already selected
@@ -37,7 +55,7 @@ export default function SelectTargetAudiencePage() {
         }
     }, [campaignData.selectedContacts]);
 
-    const toggleContact = (contact: typeof MOCK_CONTACTS[0]) => {
+    const toggleContact = (contact: typeof contacts[0]) => {
         if (selectedIds.includes(contact.id)) {
             setSelectedIds(prev => prev.filter(id => id !== contact.id));
         } else {
@@ -46,7 +64,7 @@ export default function SelectTargetAudiencePage() {
     };
 
     const handleContinue = () => {
-        const selectedContacts = MOCK_CONTACTS.filter(c => selectedIds.includes(c.id));
+        const selectedContacts = contacts.filter(c => selectedIds.includes(c.id));
         setCampaignData(prev => ({
             ...prev,
             selectedContacts
@@ -54,7 +72,7 @@ export default function SelectTargetAudiencePage() {
         router.push('/email-campaigns/create/ai-preview');
     };
 
-    const filteredContacts = MOCK_CONTACTS.filter(c =>
+    const filteredContacts = contacts.filter(c =>
         c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         c.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
         c.email.toLowerCase().includes(searchTerm.toLowerCase())
@@ -111,20 +129,27 @@ export default function SelectTargetAudiencePage() {
                 </div>
 
                 {/* Contacts Table */}
-                <div className="bg-white rounded-[32px] border border-gray-100 shadow-xl shadow-indigo-50/20 overflow-hidden">
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left border-collapse">
-                            <thead>
-                                <tr className="bg-gray-50/50 border-b border-gray-100 font-black text-[10px] text-gray-400 uppercase tracking-[0.2em]">
-                                    <th className="px-8 py-5 w-20">Select</th>
-                                    <th className="px-6 py-5">Contact Name</th>
-                                    <th className="px-6 py-5">Job Title</th>
-                                    <th className="px-6 py-5">Company</th>
-                                    <th className="px-6 py-5">Email Address</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-50">
-                                {filteredContacts.map((contact) => (
+                {contacts.length === 0 ? (
+                    <div className="bg-white rounded-[32px] border border-gray-100 shadow-xl shadow-indigo-50/20 p-12 text-center">
+                        <Users className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                        <h3 className="text-lg font-bold text-gray-900 mb-2">No Contacts Available</h3>
+                        <p className="text-gray-500 text-sm">Please select an email list with contacts first, or upload a list with contact data.</p>
+                    </div>
+                ) : (
+                    <div className="bg-white rounded-[32px] border border-gray-100 shadow-xl shadow-indigo-50/20 overflow-hidden">
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left border-collapse">
+                                <thead>
+                                    <tr className="bg-gray-50/50 border-b border-gray-100 font-black text-[10px] text-gray-400 uppercase tracking-[0.2em]">
+                                        <th className="px-8 py-5 w-20">Select</th>
+                                        <th className="px-6 py-5">Contact Name</th>
+                                        <th className="px-6 py-5">Job Title</th>
+                                        <th className="px-6 py-5">Company</th>
+                                        <th className="px-6 py-5">Email Address</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-50">
+                                    {filteredContacts.map((contact) => (
                                     <tr
                                         key={contact.id}
                                         onClick={() => toggleContact(contact)}
@@ -166,11 +191,12 @@ export default function SelectTargetAudiencePage() {
                                             </div>
                                         </td>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
-                </div>
+                )}
 
                 {/* Footer Controls */}
                 <div className="flex items-center justify-between pt-4">

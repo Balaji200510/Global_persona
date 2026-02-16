@@ -33,43 +33,55 @@ export default function EmailCampaignsPage() {
     );
 
     return (
-        <div className="max-w-7xl mx-auto space-y-10 animate-in fade-in slide-in-from-bottom-2 duration-500">
+        <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8 md:space-y-10 animate-fade-in">
             <CampaignsDashboardHeader />
 
             {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-6 gap-3 sm:gap-4">
                 {stats.map((stat, idx) => (
-                    <StatsCard
+                    <div
                         key={idx}
-                        {...stat}
-                    />
+                        className="animate-fade-in"
+                        style={{ animationDelay: `${idx * 100}ms` }}
+                    >
+                        <StatsCard {...stat} />
+                    </div>
                 ))}
             </div>
 
             {/* Campaign Grid */}
-            <div>
-                <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-xl font-bold text-gray-900">Recent Campaigns</h2>
-                    <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">
+            <div className="animate-slide-in-up" style={{ animationDelay: '300ms' }}>
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0 mb-4 sm:mb-6">
+                    <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-gray-100">Recent Campaigns</h2>
+                    <span className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">
                         Showing {mounted ? savedCampaigns.length : 0} campaigns
                     </span>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                     {!mounted ? (
-                        Array(6).fill(0).map((_, i) => <CampaignCardSkeleton key={i} />)
+                        Array(6).fill(0).map((_, i) => (
+                            <div key={i} className="animate-fade-in" style={{ animationDelay: `${i * 100}ms` }}>
+                                <CampaignCardSkeleton />
+                            </div>
+                        ))
                     ) : sortedCampaigns.length > 0 ? (
                         sortedCampaigns.map((campaign, idx) => (
-                            <CampaignCard
+                            <div
                                 key={campaign.id || idx}
-                                {...campaign}
-                                onStatusUpdate={updateCampaignStatus}
-                            />
+                                className="animate-fade-in"
+                                style={{ animationDelay: `${idx * 100}ms` }}
+                            >
+                                <CampaignCard
+                                    {...campaign}
+                                    onStatusUpdate={updateCampaignStatus}
+                                />
+                            </div>
                         ))
                     ) : (
-                        <div className="col-span-full py-20 flex flex-col items-center justify-center bg-white rounded-[32px] border border-dashed border-gray-200">
-                            <Send className="w-12 h-12 text-gray-300 mb-4" />
-                            <h3 className="text-xl font-bold text-gray-900">No campaigns yet</h3>
-                            <p className="text-gray-500 mt-1">Start by creating your first AI email campaign.</p>
+                        <div className="col-span-full py-12 sm:py-16 md:py-20 flex flex-col items-center justify-center bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-2xl sm:rounded-3xl border border-dashed border-gray-200 dark:border-gray-700 animate-fade-in">
+                            <Send className="w-10 h-10 sm:w-12 sm:h-12 text-gray-300 dark:text-gray-600 mb-4 animate-pulse-slow" />
+                            <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100">No campaigns yet</h3>
+                            <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 mt-1.5">Start by creating your first AI email campaign.</p>
                         </div>
                     )}
                 </div>

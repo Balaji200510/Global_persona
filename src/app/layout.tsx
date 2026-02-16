@@ -5,6 +5,7 @@ import { MappingProvider } from "@/context/MappingContext";
 import { CampaignProvider } from "@/context/CampaignContext";
 import { EmailAccountProvider } from "@/context/EmailAccountContext";
 import { ThemeProvider } from "@/context/ThemeContext";
+import { NotificationProvider } from "@/context/NotificationContext";
 import LayoutContent from "@/components/LayoutContent";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
@@ -21,15 +22,17 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} font-sans bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 antialiased transition-colors duration-300`}>
+      <body className={`${inter.variable} font-sans text-gray-900 dark:text-gray-100 antialiased transition-colors duration-300`}>
         <ThemeProvider>
-          <MappingProvider>
-            <CampaignProvider>
-              <EmailAccountProvider>
-                <LayoutContent>{children}</LayoutContent>
-              </EmailAccountProvider>
-            </CampaignProvider>
-          </MappingProvider>
+          <NotificationProvider>
+            <MappingProvider>
+              <CampaignProvider>
+                <EmailAccountProvider>
+                  <LayoutContent>{children}</LayoutContent>
+                </EmailAccountProvider>
+              </CampaignProvider>
+            </MappingProvider>
+          </NotificationProvider>
         </ThemeProvider>
       </body>
     </html>
