@@ -12,6 +12,7 @@ interface EmailAccountCardProps {
     info: string;
     isFirst?: boolean;
     accountId?: string;
+    onEdit?: () => void;
 }
 
 export default function EmailAccountCard({
@@ -21,7 +22,8 @@ export default function EmailAccountCard({
     verified,
     info,
     isFirst,
-    accountId
+    accountId,
+    onEdit
 }: EmailAccountCardProps) {
     const Icon = type === 'Gmail OAuth' ? Chrome : Mail;
     const { showNotification, showConfirm } = useNotification();
@@ -65,7 +67,13 @@ export default function EmailAccountCard({
                     <Activity className="w-4.5 h-4.5" />
                 </button>
                 <button
-                    onClick={() => showNotification(`Edit functionality for ${email} - Coming soon`, 'info')}
+                    onClick={() => {
+                        if (onEdit) {
+                            onEdit();
+                        } else {
+                            showNotification(`Edit functionality for ${email} - Coming soon`, 'info');
+                        }
+                    }}
                     className="p-2 text-gray-400 dark:text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-all duration-200 hover:scale-110 active:scale-95" title="Edit Account"
                 >
                     <Edit2 className="w-4.5 h-4.5" />

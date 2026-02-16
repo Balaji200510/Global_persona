@@ -1,14 +1,19 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import EmailAccountsHeader from '@/components/EmailAccountsHeader';
 import EmailStatsCard from '@/components/EmailStatsCard';
 import EmailAccountsList from '@/components/EmailAccountsList';
-import { useEmailAccount } from '@/context/EmailAccountContext';
+import EmailAccountModal from '@/components/EmailAccountModal';
+import { useEmailAccount, EmailAccount } from '@/context/EmailAccountContext';
+import { useNotification } from '@/context/NotificationContext';
 import { CheckCircle2, Mail, Activity, Settings } from 'lucide-react';
 
 export default function EmailAccountsPage() {
-    const { emailAccounts } = useEmailAccount();
+    const { emailAccounts, addEmailAccount, updateEmailAccount } = useEmailAccount();
+    const { showNotification } = useNotification();
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [editingAccount, setEditingAccount] = useState<EmailAccount | undefined>(undefined);
 
     const stats = useMemo(() => {
         const activeAccounts = emailAccounts.filter(acc => acc.status === 'active').length;
@@ -54,9 +59,29 @@ export default function EmailAccountsPage() {
         ];
     }, [emailAccounts]);
 
+    const handleOpenAdd = () => {
+        setEditingAccount(undefined);
+        setIsModalOpen(true);
+    };
+
+    const handleOpenEdit = (account: EmailAccount) => {
+        setEditingAccount(account);
+        setIsModalOpen(true);
+    };
+
+    const handleSaveAccount = (accountData: Omit<EmailAccount, 'id'>) => {
+        if (editingAccount) {
+            updateEmailAccount(editingAccount.id, accountData);
+            showNotification(`Updated account: ${accountData.email}`, 'success');
+        } else {
+            addEmailAccount(accountData);
+            showNotification(`Added new account: ${accountData.email}`, 'success');
+        }
+    };
+
     return (
         <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8 md:space-y-10 animate-fade-in">
-            <EmailAccountsHeader />
+            <EmailAccountsHeader onAddClick={handleOpenAdd} />
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
                 {stats.map((stat, idx) => (
@@ -71,8 +96,16 @@ export default function EmailAccountsPage() {
             </div>
 
             <div className="animate-slide-in-up" style={{ animationDelay: '300ms' }}>
-                <EmailAccountsList />
+                <EmailAccountsList onEditClick={handleOpenEdit} />
             </div>
+
+            <EmailAccountModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                onSubmit={handleSaveAccount}
+                initialData={editingAccount}
+                isEditing={!!editingAccount}
+            />
         </div>
     );
 }

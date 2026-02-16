@@ -3,7 +3,11 @@
 import { Plus, RefreshCw } from 'lucide-react';
 import { useNotification } from '@/context/NotificationContext';
 
-export default function EmailAccountsHeader() {
+interface EmailAccountsHeaderProps {
+    onAddClick?: () => void;
+}
+
+export default function EmailAccountsHeader({ onAddClick }: EmailAccountsHeaderProps) {
     const { showNotification } = useNotification();
 
     return (
@@ -14,7 +18,7 @@ export default function EmailAccountsHeader() {
             </div>
 
             <div className="flex items-center gap-3">
-                <button 
+                <button
                     onClick={() => showNotification('Email accounts refreshed', 'success')}
                     className="flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 rounded-lg text-sm font-semibold hover:border-blue-300 dark:hover:border-blue-600 hover:text-blue-600 dark:hover:text-blue-400 transition-all shadow-sm"
                 >
@@ -23,12 +27,10 @@ export default function EmailAccountsHeader() {
                 </button>
                 <button
                     onClick={() => {
-                        // This will be handled by the email-configuration page
-                        const addButton = document.querySelector('[data-add-account]') as HTMLButtonElement;
-                        if (addButton) {
-                            addButton.click();
+                        if (onAddClick) {
+                            onAddClick();
                         } else {
-                            showNotification('Please use the "Add Email Account" button on the Email Configuration page', 'info');
+                            showNotification('Add Account functionality coming soon', 'info');
                         }
                     }}
                     className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-slate-700 text-white rounded-lg text-sm font-semibold hover:opacity-90 transition-all shadow-md shadow-blue-100"

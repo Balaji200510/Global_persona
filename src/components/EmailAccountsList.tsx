@@ -1,9 +1,13 @@
 'use client';
 
-import { useEmailAccount } from '@/context/EmailAccountContext';
+import { useEmailAccount, EmailAccount } from '@/context/EmailAccountContext';
 import EmailAccountCard from './EmailAccountCard';
 
-export default function EmailAccountsList() {
+interface EmailAccountsListProps {
+    onEditClick?: (account: EmailAccount) => void;
+}
+
+export default function EmailAccountsList({ onEditClick }: EmailAccountsListProps) {
     const { emailAccounts } = useEmailAccount();
 
     const getAccountType = (provider?: string, protocol?: string): 'SMTP/IMAP' | 'Gmail OAuth' => {
@@ -54,6 +58,7 @@ export default function EmailAccountsList() {
                                 info={getAccountInfo(account)}
                                 isFirst={index === 0}
                                 accountId={account.id}
+                                onEdit={() => onEditClick?.(account)}
                             />
                         </div>
                     ))}
